@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dessin Collaboratif</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        const socket = io('https://tonserveur.glitch.me'); // Remplace par l'URL de ton serveur
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let drawing = false;
+
+        // Fonction pour dessiner sur le canvas
+        function draw(x, y) {
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Début du dessin
+        canvas.addEventListener('mousedown', () => {
+            drawing = true;
+        });
+
+        // Fin du dessin
+        canvas.addEventListener('mouseup', () => {
+            drawing = false;
+        });
+
+        // Mouvement de la souris
+        canvas.addEventListener('mousemove', (event) => {
+            if (!drawing) return;
+            const x = event.clientX;
+            const y = event.clientY;
+            draw(x, y);
+            socket.emit('dessin', { x, y });
+        });
+
+        // Réception des dessins des autres utilisateurs
+        socket.on('dessin', (data) => {
+            draw(data.x, data.y);
+        });
+    </script>
+</body>
+</html>
